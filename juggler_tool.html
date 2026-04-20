@@ -137,9 +137,16 @@ input[type=number]:focus{outline:none;border-color:var(--text-info);}
   </div>
 
   <div class="card">
-    <div class="ctitle">ぶどう回数（任意）</div>
-    <div class="crow"><span class="clabel">ぶどう回数</span><div class="counter"><button class="cbtn" id="grape-m">−</button><span class="cnum" id="grape-n">0</span><button class="cbtn" id="grape-p">+</button></div></div>
-    <p class="note" style="margin-top:8px;">ホール表示の数値を入力（10単位で増やす場合は長押し）</p>
+    <div class="ctitle">ぶどう回数（ボーナス間を累積）</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+      <input type="number" id="grape-add" placeholder="今回のボーナス間" inputmode="numeric" style="flex:1;font-size:16px;padding:10px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg);color:var(--text);">
+      <button id="grape-btn" style="padding:10px 16px;font-size:15px;font-weight:700;border-radius:8px;border:none;background:#1a56b0;color:#fff;cursor:pointer;white-space:nowrap;user-select:none;-webkit-user-select:none;">累積</button>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:14px;color:var(--text2);">累計ぶどう回数</span>
+      <span style="font-size:20px;font-weight:700;color:var(--text);" id="grape-total">0</span>
+    </div>
+    <p class="note" style="margin-top:6px;">ボーナスが当たるたびにその間のぶどう回数を入力して「累積」を押す</p>
   </div>
 
   <div class="card">
@@ -269,7 +276,24 @@ setupCounter('sRB');
 setupCounter('cRB');
 setupCounter('sBB2');
 setupCounter('sRB2');
-setupCounter('grape');
+// ぶどう累積ボタン
+(function(){
+  var btn=E('grape-btn'),inp=E('grape-add'),tot=E('grape-total');
+  if(!btn||!inp||!tot)return;
+  function doAdd(){
+    var v=Math.max(0,parseInt(inp.value)||0);
+    vals.grape+=v;
+    tot.textContent=vals.grape;
+    inp.value='';
+    inp.focus();
+  }
+  var moved=false;
+  btn.addEventListener('touchstart',function(){moved=false;},false);
+  btn.addEventListener('touchmove',function(){moved=true;},false);
+  btn.addEventListener('touchend',function(e){if(!moved){e.preventDefault();doAdd();}},false);
+  btn.addEventListener('click',doAdd,false);
+  inp.addEventListener('keydown',function(e){if(e.key==='Enter')doAdd();},false);
+})();
 
 // 機種変更
 E('sel').addEventListener('change',function(){
@@ -282,6 +306,8 @@ E('sel').addEventListener('change',function(){
     vals[keys[i]]=0;
     var n=E(keys[i]+'-n');if(n)n.textContent='0';
   }
+  var gt=E('grape-total');if(gt)gt.textContent='0';
+  var ga=E('grape-add');if(ga)ga.value='';
   E('games').value='';
   E('result').style.display='none';
   E('saveok').style.display='none';
